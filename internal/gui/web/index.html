@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>myc - Total Commander Desktop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="tc-theme">
+  <!-- Top Menu Bar -->
+  <header id="menu-bar" class="tc-menubar">
+    <div class="menu-item" data-menu="file">Plik
+      <div class="dropdown-menu">
+        <div class="menu-action" onclick="showLister()">Podgląd (F3)</div>
+        <div class="menu-action" onclick="showEditor()">Edycja (F4)</div>
+        <div class="menu-action" onclick="showCopyDialog()">Kopiuj (F5)</div>
+        <div class="menu-action" onclick="showMoveDialog()">Zmień / Przenieś (F6)</div>
+        <div class="menu-action" onclick="showMkdirDialog()">Nowy katalog (F7)</div>
+        <div class="menu-action" onclick="showDeleteDialog()">Usuń (F8)</div>
+        <div class="menu-separator"></div>
+        <div class="menu-action" onclick="showSplitDialog()">Podziel plik...</div>
+        <div class="menu-action" onclick="showJoinDialog()">Połącz pliki...</div>
+        <div class="menu-separator"></div>
+        <div class="menu-action" onclick="exitApp()">Zakończ (Alt+F4)</div>
+      </div>
+    </div>
+    <div class="menu-item" data-menu="select">Zaznacz
+      <div class="dropdown-menu">
+        <div class="menu-action" onclick="selectPatternPrompt()">Zaznacz grupę (+)</div>
+        <div class="menu-action" onclick="unselectPatternPrompt()">Odznacz grupę (-)</div>
+        <div class="menu-action" onclick="selectAll()">Zaznacz wszystko (Ctrl+A)</div>
+        <div class="menu-action" onclick="invertSelection()">Odwróć zaznaczenie (*)</div>
+      </div>
+    </div>
+    <div class="menu-item" data-menu="commands">Polecenia
+      <div class="dropdown-menu">
+        <div class="menu-action" onclick="showSearchDialog()">Szukaj plików (Alt+F7 / Ctrl+F)</div>
+        <div class="menu-action" onclick="showSyncDialog()">Synchronizuj katalogi...</div>
+        <div class="menu-action" onclick="showMultiRenameDialog()">Narzędzie wielokrotnej zamiany nazw (Ctrl+M)</div>
+        <div class="menu-action" onclick="compareFilesAction()">Porównaj wg zawartości (Diff)</div>
+        <div class="menu-separator"></div>
+        <div class="menu-action" onclick="refreshBothPanels()">Odśwież panele (Ctrl+R)</div>
+      </div>
+    </div>
+    <div class="menu-item" data-menu="view">Widok
+      <div class="dropdown-menu">
+        <div class="menu-action" onclick="toggleTheme()">Przełącz motyw (Jasny TC / Ciemny TC)</div>
+        <div class="menu-action" onclick="refreshBothPanels()">Odśwież widok</div>
+      </div>
+    </div>
+    <div class="menu-item" data-menu="help">Pomoc
+      <div class="dropdown-menu">
+        <div class="menu-action" onclick="showAboutDialog()">O programie myc</div>
+      </div>
+    </div>
+    <div class="window-title-badge">myc Desktop Commander</div>
+  </header>
+
+  <!-- Toolbar Bar with Icon Buttons -->
+  <nav id="toolbar" class="tc-toolbar">
+    <button class="tb-btn" title="Odśwież (Ctrl+R)" onclick="refreshActivePanel()">🔄 Odśwież</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" title="Podgląd pliku (F3)" onclick="showLister()">👁️ Podgląd</button>
+    <button class="tb-btn" title="Edycja pliku (F4)" onclick="showEditor()">✏️ Edycja</button>
+    <button class="tb-btn" title="Kopiuj (F5)" onclick="showCopyDialog()">📋 Kopiuj</button>
+    <button class="tb-btn" title="Przenieś (F6)" onclick="showMoveDialog()">🚚 Przenieś</button>
+    <button class="tb-btn" title="Nowy katalog (F7)" onclick="showMkdirDialog()">📁 Nowy kat.</button>
+    <button class="tb-btn" title="Usuń (F8)" onclick="showDeleteDialog()">🗑️ Usuń</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" title="Szukaj plików (Ctrl+F)" onclick="showSearchDialog()">🔍 Szukaj</button>
+    <button class="tb-btn" title="Wielokrotna zamiana nazw (Ctrl+M)" onclick="showMultiRenameDialog()">🏷️ Multi-Rename</button>
+    <button class="tb-btn" title="Synchronizuj katalogi" onclick="showSyncDialog()">⚖️ Synchronizuj</button>
+    <button class="tb-btn" title="Porównaj pliki (Diff)" onclick="compareFilesAction()">📊 Porównaj</button>
+    <button class="tb-btn" title="Dzielenie pliku" onclick="showSplitDialog()">✂️ Podziel</button>
+    <button class="tb-btn" title="Łączenie plików" onclick="showJoinDialog()">🧩 Połącz</button>
+  </nav>
+
+  <!-- Main Dual Panel Container -->
+  <main id="panels-container" class="tc-panels-container">
+    <!-- LEFT PANEL -->
+    <section id="left-panel" class="tc-panel active-panel" tabindex="0" onclick="setActivePanel('left')">
+      <!-- Drive Buttons Bar -->
+      <div class="drive-bar" id="left-drives">
+        <div class="drive-buttons-list" id="left-drive-btns"></div>
+        <div class="drive-space-info" id="left-drive-space">-</div>
+      </div>
+      <!-- Tabs Bar -->
+      <div class="tabs-bar" id="left-tabs">
+        <div class="tabs-list" id="left-tabs-list"></div>
+        <button class="tab-add-btn" title="Nowa karta" onclick="addTab('left')">+</button>
+      </div>
+      <!-- Path Breadcrumb -->
+      <div class="path-bar">
+        <span class="path-label">📂</span>
+        <input type="text" class="path-input" id="left-path-input" onkeydown="if(event.key==='Enter') navigatePanel('left', this.value)">
+        <button class="path-btn" title="Katalog nadrzędny (..)" onclick="goParent('left')">▲</button>
+        <button class="path-btn" title="Katalog domowy" onclick="goHome('left')">🏠</button>
+        <button class="path-btn" title="Odśwież" onclick="loadPanel('left')">↻</button>
+      </div>
+      <!-- File Table -->
+      <div class="table-scroll" id="left-table-scroll">
+        <table class="file-table" id="left-file-table">
+          <thead>
+            <tr>
+              <th class="col-name" onclick="sortPanel('left', 'name')">Nazwa <span class="sort-indicator" id="left-sort-name">▲</span></th>
+              <th class="col-ext" onclick="sortPanel('left', 'ext')">Rozsz.</th>
+              <th class="col-size" onclick="sortPanel('left', 'size')">Rozmiar</th>
+              <th class="col-date" onclick="sortPanel('left', 'date')">Data</th>
+              <th class="col-attr">Atryb</th>
+            </tr>
+          </thead>
+          <tbody id="left-file-tbody"></tbody>
+        </table>
+      </div>
+      <!-- Status Line -->
+      <footer class="panel-status-bar" id="left-status">
+        <span id="left-status-text">Ładowanie...</span>
+      </footer>
+    </section>
+
+    <!-- RIGHT PANEL -->
+    <section id="right-panel" class="tc-panel" tabindex="0" onclick="setActivePanel('right')">
+      <!-- Drive Buttons Bar -->
+      <div class="drive-bar" id="right-drives">
+        <div class="drive-buttons-list" id="right-drive-btns"></div>
+        <div class="drive-space-info" id="right-drive-space">-</div>
+      </div>
+      <!-- Tabs Bar -->
+      <div class="tabs-bar" id="right-tabs">
+        <div class="tabs-list" id="right-tabs-list"></div>
+        <button class="tab-add-btn" title="Nowa karta" onclick="addTab('right')">+</button>
+      </div>
+      <!-- Path Breadcrumb -->
+      <div class="path-bar">
+        <span class="path-label">📂</span>
+        <input type="text" class="path-input" id="right-path-input" onkeydown="if(event.key==='Enter') navigatePanel('right', this.value)">
+        <button class="path-btn" title="Katalog nadrzędny (..)" onclick="goParent('right')">▲</button>
+        <button class="path-btn" title="Katalog domowy" onclick="goHome('right')">🏠</button>
+        <button class="path-btn" title="Odśwież" onclick="loadPanel('right')">↻</button>
+      </div>
+      <!-- File Table -->
+      <div class="table-scroll" id="right-table-scroll">
+        <table class="file-table" id="right-file-table">
+          <thead>
+            <tr>
+              <th class="col-name" onclick="sortPanel('right', 'name')">Nazwa <span class="sort-indicator" id="right-sort-name">▲</span></th>
+              <th class="col-ext" onclick="sortPanel('right', 'ext')">Rozsz.</th>
+              <th class="col-size" onclick="sortPanel('right', 'size')">Rozmiar</th>
+              <th class="col-date" onclick="sortPanel('right', 'date')">Data</th>
+              <th class="col-attr">Atryb</th>
+            </tr>
+          </thead>
+          <tbody id="right-file-tbody"></tbody>
+        </table>
+      </div>
+      <!-- Status Line -->
+      <footer class="panel-status-bar" id="right-status">
+        <span id="right-status-text">Ładowanie...</span>
+      </footer>
+    </section>
+  </main>
+
+  <!-- Bottom Command Line Bar -->
+  <div id="command-bar" class="tc-commandbar">
+    <span class="cmd-prompt" id="cmd-prompt">c:\></span>
+    <input type="text" id="cmd-input" class="cmd-input" placeholder="Wpisz polecenie konsoli..." onkeydown="if(event.key==='Enter') executeCommand()">
+    <button class="cmd-exec-btn" onclick="executeCommand()">Wykonaj</button>
+  </div>
+
+  <!-- Bottom Function Keys Bar (F1..F10 / Total Commander style) -->
+  <footer id="fkeys-bar" class="tc-fkeys-bar">
+    <button class="fkey-btn" onclick="showHelp()"><span class="fnum">F1</span> Pomoc</button>
+    <button class="fkey-btn" onclick="refreshBothPanels()"><span class="fnum">F2</span> Odśwież</button>
+    <button class="fkey-btn" onclick="showLister()"><span class="fnum">F3</span> Podgląd</button>
+    <button class="fkey-btn" onclick="showEditor()"><span class="fnum">F4</span> Edycja</button>
+    <button class="fkey-btn" onclick="showCopyDialog()"><span class="fnum">F5</span> Kopiuj</button>
+    <button class="fkey-btn" onclick="showMoveDialog()"><span class="fnum">F6</span> Zmień/Przen</button>
+    <button class="fkey-btn" onclick="showMkdirDialog()"><span class="fnum">F7</span> Nowy kat.</button>
+    <button class="fkey-btn" onclick="showDeleteDialog()"><span class="fnum">F8</span> Usuń</button>
+    <button class="fkey-btn" onclick="showSearchDialog()"><span class="fnum">Alt+F7</span> Szukaj</button>
+    <button class="fkey-btn" onclick="exitApp()"><span class="fnum">Alt+F4</span> Wyjście</button>
+  </footer>
+
+  <!-- MODAL DIALOGS -->
+
+  <!-- Modal Backdrop -->
+  <div id="modal-backdrop" class="modal-backdrop" style="display:none;" onclick="closeModals()"></div>
+
+  <!-- Lister Modal (F3) -->
+  <div id="modal-lister" class="modal-dialog" style="display:none; width:80%; height:75%;">
+    <div class="modal-header">
+      <span id="lister-title">Podgląd pliku - Lister</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-lister')">✕</button>
+    </div>
+    <div class="modal-toolbar">
+      <button class="tb-btn" onclick="toggleListerHex()">Tryb Tekst / Hex</button>
+      <span id="lister-info" style="margin-left:auto; font-size:12px;"></span>
+    </div>
+    <div class="modal-body" style="padding:0; overflow:hidden;">
+      <pre id="lister-content" class="lister-pre"></pre>
+    </div>
+    <div class="modal-footer">
+      <button class="tc-btn" onclick="closeModal('modal-lister')">Zamknij (Esc)</button>
+    </div>
+  </div>
+
+  <!-- Editor Modal (F4) -->
+  <div id="modal-editor" class="modal-dialog" style="display:none; width:80%; height:80%;">
+    <div class="modal-header">
+      <span id="editor-title">Edytor tekstu</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-editor')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <textarea id="editor-textarea" class="editor-textarea" spellcheck="false"></textarea>
+    </div>
+    <div class="modal-footer">
+      <span id="editor-status" style="margin-right:auto; font-size:12px; color:#555;"></span>
+      <button class="tc-btn primary" onclick="saveEditorContent()">Zapisz (Ctrl+S)</button>
+      <button class="tc-btn" onclick="closeModal('modal-editor')">Anuluj</button>
+    </div>
+  </div>
+
+  <!-- Copy Dialog (F5) -->
+  <div id="modal-copy" class="modal-dialog" style="display:none; width:480px;">
+    <div class="modal-header">
+      <span>Kopiowanie plików (F5)</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-copy')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="copy-summary">Kopiuj pliki do:</p>
+      <input type="text" id="copy-dest-input" class="tc-input" style="width:100%; margin-top:8px;">
+    </div>
+    <div class="modal-footer">
+      <button class="tc-btn primary" onclick="executeCopy()">Kopiuj</button>
+      <button class="tc-btn" onclick="closeModal('modal-copy')">Anuluj</button>
+    </div>
+  </div>
+
+  <!-- Move Dialog (F6) -->
+  <div id="modal-move" class="modal-dialog" style="display:none; width:480px;">
+    <div class="modal-header">
+      <span>Przenoszenie / Zmiana nazwy (F6)</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-move')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="move-summary">Przenieś wybrane pliki do:</p>
+      <input type="text" id="move-dest-input" class="tc-input" style="width:100%; margin-top:8px;">
+    </div>
+    <div class="modal-footer">
+      <button class="tc-btn primary" onclick="executeMove()">Przenieś</button>
+      <button class="tc-btn" onclick="closeModal('modal-move')">Anuluj</button>
+    </div>
+  </div>
+
+  <!-- Mkdir Dialog (F7) -->
+  <div id="modal-mkdir" class="modal-dialog" style="display:none; width:400px;">
+    <div class="modal-header">
+      <span>Nowy katalog (F7)</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-mkdir')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Wpisz nazwę nowego katalogu:</p>
+      <input type="text" id="mkdir-name-input" class="tc-input" style="width:100%; margin-top:8px;" onkeydown="if(event.key==='Enter') executeMkdir()">
+    </div>
+    <div class="modal-footer">
+      <button class="tc-btn primary" onclick="executeMkdir()">Utwórz</button>
+      <button class="tc-btn" onclick="closeModal('modal-mkdir')">Anuluj</button>
+    </div>
+  </div>
+
+  <!-- Delete Dialog (F8) -->
+  <div id="modal-delete" class="modal-dialog" style="display:none; width:450px;">
+    <div class="modal-header">
+      <span>Usuwanie plików (F8)</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-delete')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="delete-summary" style="font-weight:bold; color:#a00;">Czy na pewno chcesz usunąć wybrane elementy?</p>
+      <ul id="delete-list" style="max-height:120px; overflow-y:auto; font-size:12px; margin-top:8px;"></ul>
+    </div>
+    <div class="modal-footer">
+      <button class="tc-btn danger" onclick="executeDelete()">Tak, usuń</button>
+      <button class="tc-btn" onclick="closeModal('modal-delete')">Nie</button>
+    </div>
+  </div>
+
+  <!-- Search Dialog (Ctrl+F / Alt+F7) -->
+  <div id="modal-search" class="modal-dialog" style="display:none; width:650px; height:550px;">
+    <div class="modal-header">
+      <span>Wyszukiwanie plików (Total Commander Style)</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-search')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex; flex-direction:column; gap:8px;">
+      <div style="display:grid; grid-template-columns: 120px 1fr; gap:6px; align-items:center;">
+        <label>Szukaj plików:</label>
+        <input type="text" id="search-pattern" class="tc-input" value="*.*" placeholder="np. *.go, *test*">
+        <label>Szukaj w:</label>
+        <input type="text" id="search-root" class="tc-input">
+        <label>Zawiera tekst:</label>
+        <input type="text" id="search-content" class="tc-input" placeholder="Opcjonalny tekst wewnątrz pliku">
+      </div>
+      <div style="display:flex; gap:12px; margin:4px 0;">
+        <label><input type="checkbox" id="search-case"> Rozróżniaj wielkość liter</label>
+        <button class="tc-btn primary" style="margin-left:auto;" onclick="executeSearch()">Rozpocznij szukanie</button>
+      </div>
+      <div style="font-size:12px; font-weight:bold; border-bottom:1px solid #ccc; padding-bottom:4px;">Wyniki wyszukiwania:</div>
+      <div id="search-results-box" style="flex:1; overflow-y:auto; background:#fff; border:1px inset #888; font-size:12px;">
+        <table class="file-table" style="width:100%;">
+          <thead>
+            <tr><th>Ścieżka</th><th>Rozmiar</th><th>Linia</th></tr>
+          </thead>
+          <tbody id="search-results-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tc-btn" onclick="closeModal('modal-search')">Zamknij</button>
+    </div>
+  </div>
+
+  <!-- Multi-Rename Dialog (Ctrl+M) -->
+  <div id="modal-multirename" class="modal-dialog" style="display:none; width:700px; height:520px;">
+    <div class="modal-header">
+      <span>Narzędzie wielokrotnej zamiany nazw (Multi-Rename Tool)</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-multirename')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex; flex-direction:column; gap:8px;">
+      <div style="display:grid; grid-template-columns: 80px 1fr 80px 1fr; gap:6px; align-items:center; font-size:12px;">
+        <label>Prefiks:</label><input type="text" id="mr-prefix" class="tc-input" oninput="previewMultiRename()">
+        <label>Sufiks:</label><input type="text" id="mr-suffix" class="tc-input" oninput="previewMultiRename()">
+        <label>Szukaj:</label><input type="text" id="mr-find" class="tc-input" oninput="previewMultiRename()">
+        <label>Zamień:</label><input type="text" id="mr-replace" class="tc-input" oninput="previewMultiRename()">
+        <label>Licznik od:</label><input type="number" id="mr-start" class="tc-input" value="1" min="1" oninput="previewMultiRename()">
+        <label>Cyfry:</label><input type="number" id="mr-digits" class="tc-input" value="3" min="1" oninput="previewMultiRename()">
+      </div>
+      <div style="font-size:12px; font-weight:bold; margin-top:4px;">Podgląd nowej nazwy:</div>
+      <div style="flex:1; overflow-y:auto; background:#fff; border:1px inset #888;">
+        <table class="file-table" style="width:100%;">
+          <thead>
+            <tr><th>Stara nazwa</th><th>Nowa nazwa</th></tr>
+          </thead>
+          <tbody id="mr-preview-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tc-btn primary" onclick="applyMultiRename()">Zastosuj zamianę</button>
+      <button class="tc-btn" onclick="closeModal('modal-multirename')">Anuluj</button>
+    </div>
+  </div>
+
+  <!-- Synchronize Directories Dialog -->
+  <div id="modal-sync" class="modal-dialog" style="display:none; width:750px; height:540px;">
+    <div class="modal-header">
+      <span>Synchronizacja katalogów (Total Commander)</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-sync')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+        <div><b>Lewy:</b> <span id="sync-left-path"></span></div>
+        <button class="tc-btn primary" onclick="executeCompareSync()">Porównaj katalogi</button>
+        <div><b>Prawy:</b> <span id="sync-right-path"></span></div>
+      </div>
+      <div style="flex:1; overflow-y:auto; background:#fff; border:1px inset #888;">
+        <table class="file-table" style="width:100%;">
+          <thead>
+            <tr><th>Plik</th><th>Lewy (B)</th><th>Kierunek</th><th>Prawy (B)</th><th>Status</th></tr>
+          </thead>
+          <tbody id="sync-results-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tc-btn" onclick="closeModal('modal-sync')">Zamknij</button>
+    </div>
+  </div>
+
+  <!-- Split File Dialog -->
+  <div id="modal-split" class="modal-dialog" style="display:none; width:450px;">
+    <div class="modal-header">
+      <span>Podziel plik</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-split')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="split-file-name" style="font-weight:bold; margin-bottom:8px;"></p>
+      <label>Rozmiar pojedynczej części:</label>
+      <select id="split-size-select" class="tc-input" style="width:100%; margin-top:4px;">
+        <option value="1457664">1.44 MB (Dyskietka standardowa)</option>
+        <option value="100431872">100 MB (ZIP 100)</option>
+        <option value="681574400">650 MB (CD-ROM 650)</option>
+        <option value="734003200">700 MB (CD-ROM 700)</option>
+        <option value="4700000000">4.7 GB (DVD)</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="tc-btn primary" onclick="executeSplit()">Podziel</button>
+      <button class="tc-btn" onclick="closeModal('modal-split')">Anuluj</button>
+    </div>
+  </div>
+
+  <!-- Join Files Dialog -->
+  <div id="modal-join" class="modal-dialog" style="display:none; width:450px;">
+    <div class="modal-header">
+      <span>Połącz pliki (.001 / .crc)</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-join')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="join-file-name" style="font-weight:bold; margin-bottom:8px;"></p>
+      <p>Katalog docelowy rekonstrukcji:</p>
+      <input type="text" id="join-dest-input" class="tc-input" style="width:100%; margin-top:4px;">
+    </div>
+    <div class="modal-footer">
+      <button class="tc-btn primary" onclick="executeJoin()">Połącz pliki</button>
+      <button class="tc-btn" onclick="closeModal('modal-join')">Anuluj</button>
+    </div>
+  </div>
+
+  <!-- About Dialog -->
+  <div id="modal-about" class="modal-dialog" style="display:none; width:450px;">
+    <div class="modal-header">
+      <span>O programie myc</span>
+      <button class="modal-close-btn" onclick="closeModal('modal-about')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center; padding:16px;">
+      <h2 style="margin:0 0 8px 0;">myc (My Commander)</h2>
+      <p><b>Dwupanelowy Menedżer Plików</b></p>
+      <p style="font-size:12px; color:#555;">Tryb Desktop: Styl Total Commander<br>Tryb Terminal: Styl Midnight Commander</p>
+      <p style="font-size:11px; margin-top:12px;">Wspiera VFS (Local, ZIP, TAR), zaawansowane operacje na plikach (Diff, Duplikaty, Multi-Rename, Split/Join, CRC32, UUE, XXE, MIME Base64, XMODEM, YMODEM).</p>
+      <p style="font-size:11px; color:#888;">Licencja MIT &bull; Go 1.24</p>
+    </div>
+    <div class="modal-footer">
+      <button class="tc-btn primary" onclick="closeModal('modal-about')">OK</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

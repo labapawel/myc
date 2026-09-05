@@ -1,8 +1,10 @@
 # myc (My Commander)
 
-Nowoczesny, szybki, dwupanelowy menedżer plików w terminalu (TUI), inspirowany klasycznymi programami typu **Norton Commander**.
+Nowoczesny, szybki, dwupanelowy menedżer plików oferujący dwa zintegrowane tryby działania:
+- **Tryb Desktop (GUI):** Klasyczny interfejs okienkowy z paskami wyboru dysków `[-c-]` `[-d-]` / `[/]`, kartami katalogów (tabs), tabelą kolumn z sortowaniem, zaznaczaniem plików na czerwono, paskiem narzędzi oraz dolnymi klawiszami funkcyjnymi F3–F8.
+- **Tryb Terminal (CLI / TUI):** Klasyczny dwupanelowy menedżer plików w terminalu oparty o bibliotekę `tcell/v2`, z menu górnym (`F9`) oraz pełną obsługą skrótów klawiaturowych.
 
-Napisany w czystym **Go 1.24** przy użyciu biblioteki `tcell/v2`, ze wsparciem dla architektury 32-bitowej oraz 64-bitowej na systemach **Linux** i **Windows**.
+Napisany w czystym **Go 1.24**, ze wsparciem dla architektury 32-bitowej oraz 64-bitowej na systemach **Linux** i **Windows** bez zewnętrznych zależności CGo.
 
 ---
 
@@ -148,8 +150,11 @@ go test -v ./...
 # Kompilacja pliku wykonywalnego
 go build -o myc ./cmd/myc
 
-# Uruchomienie
-./myc
+# Uruchomienie w trybie okienkowym Desktop
+./myc --gui
+
+# Uruchomienie w trybie konsolowym Terminal (TUI)
+./myc --cli
 ```
 
 ### Kompilacja wieloplatformowa (Cross-compilation)

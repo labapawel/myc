@@ -1,5 +1,6 @@
 # Binaries and executables
 myc
+myc-*
 *.exe
 *.dll
 *.so
