@@ -397,6 +397,26 @@ func (a *App) HandleKey(ev *tcell.EventKey) {
 	case tcell.KeyCtrlA:
 		a.ActivePanel.SelectAll()
 
+	case tcell.KeyCtrlF:
+		a.ActiveDialog = NewInputDialog("SZUKAJ PLIKÓW [Ctrl+F]", "Wzorzec nazwy pliku (np. *.go, *.md):", "*", func(pattern string) {
+			a.ActiveDialog = nil
+			if pattern == "" {
+				return
+			}
+			var matches []operations.SearchMatch
+			filter := operations.SearchFilter{NamePattern: pattern}
+			err := operations.SearchFiles(a.ActivePanel.VFS.Path(), filter, func(m operations.SearchMatch) {
+				matches = append(matches, m)
+			}, nil)
+			if err != nil {
+				a.StatusNotice = "Błąd szukania: " + err.Error()
+			} else {
+				a.StatusNotice = fmt.Sprintf("Znaleziono %d pasujących plików dla wzorca %s", len(matches), pattern)
+			}
+		}, func() {
+			a.ActiveDialog = nil
+		})
+
 	case tcell.KeyCtrlU:
 		a.HorizontalSplit = !a.HorizontalSplit
 
@@ -406,9 +426,33 @@ func (a *App) HandleKey(ev *tcell.EventKey) {
 		a.StatusNotice = "Panele odświeżone"
 
 	case tcell.KeyRune:
-		if ev.Rune() == ' ' {
+		switch ev.Rune() {
+		case ' ':
 			a.ActivePanel.ToggleSelect(visibleHeight)
-		} else {
+		case '+':
+			a.ActiveDialog = NewInputDialog("ZAZNACZANIE GRUPY [+]", "Wzorzec plików (np. *.go, *.txt):", "*.*", func(pattern string) {
+				a.ActiveDialog = nil
+				if pattern != "" {
+					cnt := a.ActivePanel.SelectByPattern(pattern)
+					a.StatusNotice = fmt.Sprintf("Zaznaczono %d plików", cnt)
+				}
+			}, func() {
+				a.ActiveDialog = nil
+			})
+		case '-':
+			a.ActiveDialog = NewInputDialog("ODZNACZANIE GRUPY [-]", "Wzorzec plików do odznaczenia:", "*.*", func(pattern string) {
+				a.ActiveDialog = nil
+				if pattern != "" {
+					cnt := a.ActivePanel.UnselectByPattern(pattern)
+					a.StatusNotice = fmt.Sprintf("Odznaczono %d plików", cnt)
+				}
+			}, func() {
+				a.ActiveDialog = nil
+			})
+		case '*':
+			a.ActivePanel.InvertSelection()
+			a.StatusNotice = "Odwrócono zaznaczenie"
+		default:
 			// Start typing in command prompt
 			a.CommandBar.Active = true
 			a.CommandBar.WorkingDir = a.ActivePanel.VFS.Path()

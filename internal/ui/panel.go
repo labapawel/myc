@@ -152,6 +152,47 @@ func (p *Panel) UnselectAll() {
 	}
 }
 
+// InvertSelection toggles selection on all entries except "..".
+func (p *Panel) InvertSelection() {
+	for _, e := range p.Entries {
+		if e.Name != ".." {
+			e.Selected = !e.Selected
+		}
+	}
+}
+
+// SelectByPattern selects files matching the glob pattern (e.g. *.go, *.txt).
+func (p *Panel) SelectByPattern(pattern string) int {
+	count := 0
+	for _, e := range p.Entries {
+		if e.Name == ".." {
+			continue
+		}
+		matched, _ := filepath.Match(pattern, e.Name)
+		if matched {
+			e.Selected = true
+			count++
+		}
+	}
+	return count
+}
+
+// UnselectByPattern unselects files matching the glob pattern.
+func (p *Panel) UnselectByPattern(pattern string) int {
+	count := 0
+	for _, e := range p.Entries {
+		if e.Name == ".." {
+			continue
+		}
+		matched, _ := filepath.Match(pattern, e.Name)
+		if matched {
+			e.Selected = false
+			count++
+		}
+	}
+	return count
+}
+
 // GetSelectedOrCurrent returns all selected entries, or if none selected, the current one.
 func (p *Panel) GetSelectedOrCurrent() []*vfs.FileEntry {
 	var selected []*vfs.FileEntry
@@ -223,16 +264,30 @@ func (p *Panel) Enter() (bool, error) {
 		return true, p.Refresh()
 	}
 
-	if curr.IsArchive && strings.HasSuffix(strings.ToLower(curr.Name), ".zip") {
-		// Mount zip as virtual directory
-		zipVfs, err := vfs.NewZipVFS(curr.Path)
-		if err != nil {
-			return false, err
+	if curr.IsArchive {
+		lower := strings.ToLower(curr.Name)
+		if strings.HasSuffix(lower, ".zip") {
+			// Mount zip as virtual directory
+			zipVfs, err := vfs.NewZipVFS(curr.Path)
+			if err != nil {
+				return false, err
+			}
+			p.VFS = zipVfs
+			p.Cursor = 0
+			p.TopOffset = 0
+			return true, p.Refresh()
 		}
-		p.VFS = zipVfs
-		p.Cursor = 0
-		p.TopOffset = 0
-		return true, p.Refresh()
+		if strings.HasSuffix(lower, ".tar") || strings.HasSuffix(lower, ".tar.gz") || strings.HasSuffix(lower, ".tgz") || strings.HasSuffix(lower, ".tar.bz2") {
+			// Mount tar as virtual directory
+			tarVfs, err := vfs.NewTarVFS(curr.Path)
+			if err != nil {
+				return false, err
+			}
+			p.VFS = tarVfs
+			p.Cursor = 0
+			p.TopOffset = 0
+			return true, p.Refresh()
+		}
 	}
 
 	return false, nil
