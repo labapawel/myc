@@ -1,6 +1,6 @@
-# myc (Midnight / My Commander)
+# myc (My Commander)
 
-Nowoczesny, szybki, dwupanelowy menedżer plików w terminalu (TUI), inspirowany klasycznymi programami **Norton Commander**, **Midnight Commander** oraz **Total Commander**.
+Nowoczesny, szybki, dwupanelowy menedżer plików w terminalu (TUI), inspirowany klasycznymi programami typu **Norton Commander**.
 
 Napisany w czystym **Go 1.24** przy użyciu biblioteki `tcell/v2`, ze wsparciem dla architektury 32-bitowej oraz 64-bitowej na systemach **Linux** i **Windows**.
 
@@ -11,7 +11,7 @@ Napisany w czystym **Go 1.24** przy użyciu biblioteki `tcell/v2`, ze wsparciem 
 ### 🗂️ Interfejs dwupanelowy
 - **Dwa niezależne panele plików:** Płynna nawigacja, przełączanie aktywnego panelu klawiszem `Tab`.
 - **Układ poziomy lub pionowy:** Przełączanie orientacji paneli w locie (`F2` lub `Ctrl+U`).
-- **Górne menu w stylu Midnight Commander (`F9`):** Klasyczny pasek menu na samej górze ekranu (**Lewy**, **Plik**, **Polecenie**, **Opcje**, **Prawy**) z rozwijanymi listami komend (dropdown), nawigacją strzałkami i skrótami literowymi.
+- **Górne menu ekranowe (`F9`):** Klasyczny pasek menu na samej górze ekranu (**Lewy**, **Plik**, **Polecenie**, **Opcje**, **Prawy**) z rozwijanymi listami komend (dropdown), nawigacją strzałkami i skrótami literowymi.
 - **Pasek funkcyjny F1–F10:** Szybki dostęp do kluczowych akcji z poziomu dolnej belki.
 - **Wiersz poleceń:** Wbudowany wiersz poleceń na dole ekranu z obsługą wykonywania poleceń w bieżącym katalogu.
 - **Szybkie zaznaczanie wieloznacznikowe:**
@@ -35,7 +35,7 @@ Napisany w czystym **Go 1.24** przy użyciu biblioteki `tcell/v2`, ze wsparciem 
 - **Wyszukiwanie duplikatów plików:** Szybkie wstępne grupowanie po rozmiarze z weryfikacją sumą skrótu SHA-256.
 - **Dzielenie i łączenie dużych plików (Split & Join):**
   - Dzielenie na części o zadanym rozmiarze (predefiniowane: dyskietka 1.44MB, Zip 100MB, CD 650MB/700MB, DVD 4.7GB lub własny rozmiar).
-  - Generowanie pliku sum kontrolnych `.crc` (zgodnego ze standardem Total Commander / Midnight Commander).
+  - Generowanie pliku sum kontrolnych `.crc` (standard sum kontrolnych CRC32).
   - Składanie plików z automatyczną weryfikacją integralności CRC32.
 - **Kodowanie i dekodowanie:**
   - **UUE** (Unix-to-Unix Encode / UUDecode),
@@ -72,7 +72,7 @@ Napisany w czystym **Go 1.24** przy użyciu biblioteki `tcell/v2`, ze wsparciem 
 | `F6` | Zmiana nazwy / przenoszenie elementów |
 | `F7` | Tworzenie nowego katalogu (Mkdir) |
 | `F8` / `Delete` | Usuwanie pliku lub zaznaczonych elementów |
-| `F9` | Górne menu programu (Midnight Commander) |
+| `F9` | Górne menu programu |
 | `F10` | Wyjście z programu |
 | `Tab` | Przełączenie aktywnego panelu (lewy ↔ prawy) |
 | `Spacja` / `Insert` | Zaznaczenie / odznaczenie elementu pod kursorem |
