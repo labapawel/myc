@@ -2,7 +2,9 @@ package ui
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
@@ -21,6 +23,7 @@ type App struct {
 	ActiveDialog    *Dialog
 	ActiveLister    *Lister
 	ActiveEditor    *Editor
+	MenuBar         *MenuBar
 	Running         bool
 	StatusNotice    string
 }
@@ -59,6 +62,7 @@ func NewApp(leftPath, rightPath string) (*App, error) {
 		ActivePanel:     left,
 		HorizontalSplit: false,
 		CommandBar:      NewCommandBar(),
+		MenuBar:         NewMenuBar(),
 		Running:         true,
 	}
 
@@ -132,10 +136,6 @@ func (a *App) Draw() {
 		return
 	}
 
-	// Top Title Bar
-	titleText := " MYC 1.0 (Midnight/Total Commander) | Windows & Linux | Tab: Panele | F1: Pomoc | F10: Wyjście "
-	drawBar(a.Screen, 0, 0, w, titleText, a.Theme.HeaderBg, a.Theme.HeaderFg)
-
 	// Panels Area
 	panelTop := 1
 	panelBottom := h - 4 // leaves 3 lines at bottom for status, cmd, and F-keys
@@ -172,6 +172,11 @@ func (a *App) Draw() {
 
 	// Function Key Strip
 	DrawKeyBar(a.Screen, h-1, w, a.Theme)
+
+	// Top Menu Bar (Midnight Commander style: Lewy Plik Polecenie Opcje Prawy)
+	if a.MenuBar != nil {
+		a.MenuBar.Draw(a.Screen, w, h, a.Theme)
+	}
 
 	// Active Modal Dialog on top of everything
 	if a.ActiveDialog != nil && a.ActiveDialog.Type != DialogNone {
@@ -300,6 +305,12 @@ func (a *App) HandleKey(ev *tcell.EventKey) {
 		return
 	}
 
+	// If top MenuBar is active, route key to MenuBar
+	if a.MenuBar != nil && a.MenuBar.Active {
+		a.MenuBar.HandleKey(ev, a.handleMenuAction)
+		return
+	}
+
 	// If command bar is active or user typed character with modifier
 	if a.CommandBar.Active {
 		if ev.Key() == tcell.KeyEscape {
@@ -389,7 +400,9 @@ func (a *App) HandleKey(ev *tcell.EventKey) {
 		a.actionDelete()
 
 	case tcell.KeyF9:
-		a.actionToolsMenu()
+		if a.MenuBar != nil {
+			a.MenuBar.Toggle()
+		}
 
 	case tcell.KeyF10:
 		a.actionQuit()
@@ -602,37 +615,355 @@ func (a *App) actionDelete() {
 	})
 }
 
-func (a *App) actionToolsMenu() {
+func (a *App) handleMenuAction(actionID string) {
+	switch actionID {
+	case "view":
+		a.actionView()
+	case "edit":
+		a.actionEdit()
+	case "copy":
+		a.actionCopy()
+	case "move":
+		a.actionMoveOrRename()
+	case "mkdir":
+		a.actionMkdir()
+	case "delete":
+		a.actionDelete()
+	case "split":
+		a.actionSplitFile()
+	case "join":
+		a.actionJoinFiles()
+	case "encode":
+		a.actionEncodeFile()
+	case "decode":
+		a.actionDecodeFile()
+	case "quit":
+		a.actionQuit()
+	case "search":
+		a.actionSearchFiles()
+	case "diff":
+		a.runCompareTool()
+	case "duplicates":
+		a.runDuplicatesTool()
+	case "sync":
+		a.actionSyncDirs()
+	case "rename":
+		a.runMultiRenameTool()
+	case "serial":
+		a.actionSerialTransfer()
+	case "split_toggle":
+		a.HorizontalSplit = !a.HorizontalSplit
+	case "refresh":
+		a.ActivePanel.Refresh()
+		a.InactivePanel().Refresh()
+		a.StatusNotice = "Panele odświeżone"
+	case "select_group":
+		a.actionSelectGroup()
+	case "unselect_group":
+		a.actionUnselectGroup()
+	case "invert_select":
+		a.ActivePanel.InvertSelection()
+		a.StatusNotice = "Odwrócono zaznaczenie"
+	case "select_all":
+		a.ActivePanel.SelectAll()
+		a.StatusNotice = "Zaznaczono wszystkie elementy"
+	case "about":
+		a.actionAbout()
+	case "left_refresh":
+		a.LeftPanel.Refresh()
+	case "left_activate":
+		a.LeftPanel.Active = true
+		a.RightPanel.Active = false
+		a.ActivePanel = a.LeftPanel
+	case "left_home":
+		home, _ := os.UserHomeDir()
+		if home != "" {
+			a.LeftPanel.VFS.SetPath(home)
+			a.LeftPanel.Refresh()
+		}
+	case "left_root":
+		a.LeftPanel.VFS.SetPath("/")
+		a.LeftPanel.Refresh()
+	case "right_refresh":
+		a.RightPanel.Refresh()
+	case "right_activate":
+		a.RightPanel.Active = true
+		a.LeftPanel.Active = false
+		a.ActivePanel = a.RightPanel
+	case "right_home":
+		home, _ := os.UserHomeDir()
+		if home != "" {
+			a.RightPanel.VFS.SetPath(home)
+			a.RightPanel.Refresh()
+		}
+	case "right_root":
+		a.RightPanel.VFS.SetPath("/")
+		a.RightPanel.Refresh()
+	}
+}
+
+func (a *App) actionSplitFile() {
+	curr := a.ActivePanel.CurrentEntry()
+	if curr == nil || curr.IsDir {
+		a.StatusNotice = "Wybierz plik do podzielenia"
+		return
+	}
+	prompt := fmt.Sprintf("Dzielenie '%s'. Rozmiar części w bajtach:", curr.Name)
+	defaultSize := "1457664"
+	a.ActiveDialog = NewInputDialog("DZIELENIE PLIKU", prompt, defaultSize, func(val string) {
+		a.ActiveDialog = nil
+		chunkSize, err := strconv.ParseInt(strings.TrimSpace(val), 10, 64)
+		if err != nil || chunkSize <= 0 {
+			a.StatusNotice = "Nieprawidłowy rozmiar części"
+			return
+		}
+		targetDir := a.InactivePanel().VFS.Path()
+		parts, err := operations.SplitFile(curr.Path, targetDir, chunkSize, nil)
+		if err != nil {
+			a.StatusNotice = "Błąd dzielenia: " + err.Error()
+		} else {
+			a.ActivePanel.Refresh()
+			a.InactivePanel().Refresh()
+			a.StatusNotice = fmt.Sprintf("Podzielono na %d części do drugiego panelu", len(parts))
+		}
+	}, func() { a.ActiveDialog = nil })
+}
+
+func (a *App) actionJoinFiles() {
+	curr := a.ActivePanel.CurrentEntry()
+	if curr == nil || curr.IsDir {
+		a.StatusNotice = "Wybierz pierwszy plik części (.001) lub plik .crc"
+		return
+	}
+	targetDir := a.InactivePanel().VFS.Path()
+	out, err := operations.JoinFiles(curr.Path, targetDir, nil)
+	if err != nil {
+		a.StatusNotice = "Błąd łączenia: " + err.Error()
+	} else {
+		a.ActivePanel.Refresh()
+		a.InactivePanel().Refresh()
+		a.StatusNotice = "Połączono pomyślnie: " + filepath.Base(out)
+	}
+}
+
+func (a *App) actionEncodeFile() {
+	curr := a.ActivePanel.CurrentEntry()
+	if curr == nil || curr.IsDir {
+		a.StatusNotice = "Wybierz plik do zakodowania"
+		return
+	}
 	menuItems := []string{
-		"Narzędzie masowej zmiany nazw (Multi-Rename)",
-		"Wyszukiwanie duplikatów plików w katalogu",
-		"Porównaj pliki wg zawartości (Diff)",
-		"Przełącz podział okna (Pionowy / Poziomy)",
-		"Informacje o programie",
+		"1. UUE (Unix-to-Unix Encode)",
+		"2. XXE (XXEncode)",
+		"3. MIME Base64",
+	}
+	a.ActiveDialog = NewMenuDialog("KODOWANIE PLIKU", menuItems, func(choice string) {
+		a.ActiveDialog = nil
+		targetDir := a.InactivePanel().VFS.Path()
+		srcFile, err := os.Open(curr.Path)
+		if err != nil {
+			a.StatusNotice = "Błąd odczytu: " + err.Error()
+			return
+		}
+		defer srcFile.Close()
+
+		switch {
+		case strings.HasPrefix(choice, "1"):
+			dstPath := filepath.Join(targetDir, curr.Name+".uue")
+			dstFile, err := os.Create(dstPath)
+			if err != nil {
+				a.StatusNotice = "Błąd zapisu: " + err.Error()
+				return
+			}
+			defer dstFile.Close()
+			err = operations.UUEncode(srcFile, dstFile, curr.Name, 0644)
+			if err != nil {
+				a.StatusNotice = "Błąd UUE: " + err.Error()
+			} else {
+				a.StatusNotice = "Zakodowano UUE: " + filepath.Base(dstPath)
+			}
+		case strings.HasPrefix(choice, "2"):
+			dstPath := filepath.Join(targetDir, curr.Name+".xxe")
+			dstFile, err := os.Create(dstPath)
+			if err != nil {
+				a.StatusNotice = "Błąd zapisu: " + err.Error()
+				return
+			}
+			defer dstFile.Close()
+			err = operations.XXEncode(srcFile, dstFile, curr.Name, 0644)
+			if err != nil {
+				a.StatusNotice = "Błąd XXE: " + err.Error()
+			} else {
+				a.StatusNotice = "Zakodowano XXE: " + filepath.Base(dstPath)
+			}
+		case strings.HasPrefix(choice, "3"):
+			dstPath := filepath.Join(targetDir, curr.Name+".b64")
+			dstFile, err := os.Create(dstPath)
+			if err != nil {
+				a.StatusNotice = "Błąd zapisu: " + err.Error()
+				return
+			}
+			defer dstFile.Close()
+			err = operations.MIMEEncode(srcFile, dstFile)
+			if err != nil {
+				a.StatusNotice = "Błąd MIME: " + err.Error()
+			} else {
+				a.StatusNotice = "Zakodowano Base64: " + filepath.Base(dstPath)
+			}
+		}
+		a.InactivePanel().Refresh()
+	}, func() { a.ActiveDialog = nil })
+}
+
+func (a *App) actionDecodeFile() {
+	curr := a.ActivePanel.CurrentEntry()
+	if curr == nil || curr.IsDir {
+		a.StatusNotice = "Wybierz plik do zdekodowania (.uue, .xxe, .b64)"
+		return
+	}
+	targetDir := a.InactivePanel().VFS.Path()
+	srcFile, err := os.Open(curr.Path)
+	if err != nil {
+		a.StatusNotice = "Błąd: " + err.Error()
+		return
+	}
+	defer srcFile.Close()
+
+	lower := strings.ToLower(curr.Name)
+	if strings.HasSuffix(lower, ".uue") {
+		out, err := operations.UUDecode(srcFile, targetDir)
+		if err != nil {
+			a.StatusNotice = "Błąd UUDecode: " + err.Error()
+		} else {
+			a.InactivePanel().Refresh()
+			a.StatusNotice = "Zdekodowano: " + filepath.Base(out)
+		}
+	} else if strings.HasSuffix(lower, ".xxe") {
+		out, err := operations.XXDecode(srcFile, targetDir)
+		if err != nil {
+			a.StatusNotice = "Błąd XXDecode: " + err.Error()
+		} else {
+			a.InactivePanel().Refresh()
+			a.StatusNotice = "Zdekodowano: " + filepath.Base(out)
+		}
+	} else {
+		outPath := filepath.Join(targetDir, strings.TrimSuffix(curr.Name, filepath.Ext(curr.Name)))
+		dstFile, err := os.Create(outPath)
+		if err != nil {
+			a.StatusNotice = "Błąd zapisu: " + err.Error()
+			return
+		}
+		defer dstFile.Close()
+		err = operations.MIMEDecode(srcFile, dstFile)
+		if err != nil {
+			a.StatusNotice = "Błąd dekodowania: " + err.Error()
+		} else {
+			a.InactivePanel().Refresh()
+			a.StatusNotice = "Zdekodowano: " + filepath.Base(outPath)
+		}
+	}
+}
+
+func (a *App) actionSyncDirs() {
+	leftDir := a.LeftPanel.VFS.Path()
+	rightDir := a.RightPanel.VFS.Path()
+	if leftDir == rightDir {
+		a.StatusNotice = "Oba panele wskazują ten sam katalog"
+		return
 	}
 
-	a.ActiveDialog = NewMenuDialog("NARZĘDZIA [F9]", menuItems, func(selected string) {
+	items, err := operations.CompareDirectories(leftDir, rightDir)
+	if err != nil {
+		a.StatusNotice = "Błąd porównywania katalogów: " + err.Error()
+		return
+	}
+
+	toCopy := 0
+	for _, it := range items {
+		if it.Status != operations.StatusIdentical {
+			toCopy++
+		}
+	}
+
+	msg := fmt.Sprintf("Porównano katalogi:\nLewy: %s\nPrawy: %s\n\nZnaleziono %d różnic.\nCzy chcesz zsynchronizować katalogi?",
+		filepath.Base(leftDir), filepath.Base(rightDir), toCopy)
+
+	a.ActiveDialog = NewConfirmDialog("SYNCHRONIZACJA KATALOGÓW", msg, func(choice string) {
 		a.ActiveDialog = nil
-		switch {
-		case strings.HasPrefix(selected, "Narzędzie masowej zmiany"):
-			a.runMultiRenameTool()
-		case strings.HasPrefix(selected, "Wyszukiwanie duplikatów"):
-			a.runDuplicatesTool()
-		case strings.HasPrefix(selected, "Porównaj pliki"):
-			a.runCompareTool()
-		case strings.HasPrefix(selected, "Przełącz podział"):
-			a.HorizontalSplit = !a.HorizontalSplit
-		case strings.HasPrefix(selected, "Informacje"):
-			a.ActiveDialog = NewMessageDialog("O PROGRAMIE",
-				"MYC File Manager v1.0.0\n"+
-					"Wieloplatformowy menedżer plików dla Windows i Linux.\n"+
-					"Licencja: MIT | Autor: Paweł Łaba & Społeczność\n"+
-					"Inspirowany Norton Commander i Total Commander.",
-				func() { a.ActiveDialog = nil })
+		if choice == "Tak" {
+			err := operations.ExecuteSync(items, nil)
+			if err != nil {
+				a.StatusNotice = "Błąd synchronizacji: " + err.Error()
+			} else {
+				a.LeftPanel.Refresh()
+				a.RightPanel.Refresh()
+				a.StatusNotice = fmt.Sprintf("Zsynchronizowano %d elementów", toCopy)
+			}
+		}
+	}, func() { a.ActiveDialog = nil })
+}
+
+func (a *App) actionSerialTransfer() {
+	a.ActiveDialog = NewMessageDialog("PORT SZEREGOWY (XMODEM / YMODEM)",
+		"Obsługa transmisji szeregowej zintegrowana w silniku operations:\n"+
+			"- XMODEM (128B checksum & CRC-16)\n"+
+			"- YMODEM (1KB STX z metadanymi pliku)\n\n"+
+			"Wybierz plik w panelu i podłącz urządzenie szeregowe.",
+		func() { a.ActiveDialog = nil })
+}
+
+func (a *App) actionSearchFiles() {
+	a.ActiveDialog = NewInputDialog("SZUKAJ PLIKÓW [Ctrl+F]", "Wzorzec nazwy pliku (np. *.go, *.md):", "*", func(pattern string) {
+		a.ActiveDialog = nil
+		if pattern == "" {
+			return
+		}
+		var matches []operations.SearchMatch
+		filter := operations.SearchFilter{NamePattern: pattern}
+		err := operations.SearchFiles(a.ActivePanel.VFS.Path(), filter, func(m operations.SearchMatch) {
+			matches = append(matches, m)
+		}, nil)
+		if err != nil {
+			a.StatusNotice = "Błąd szukania: " + err.Error()
+		} else {
+			a.StatusNotice = fmt.Sprintf("Znaleziono %d pasujących plików dla wzorca %s", len(matches), pattern)
 		}
 	}, func() {
 		a.ActiveDialog = nil
 	})
+}
+
+func (a *App) actionSelectGroup() {
+	a.ActiveDialog = NewInputDialog("ZAZNACZANIE GRUPY [+]", "Wzorzec plików (np. *.go, *.txt):", "*.*", func(pattern string) {
+		a.ActiveDialog = nil
+		if pattern != "" {
+			cnt := a.ActivePanel.SelectByPattern(pattern)
+			a.StatusNotice = fmt.Sprintf("Zaznaczono %d plików", cnt)
+		}
+	}, func() {
+		a.ActiveDialog = nil
+	})
+}
+
+func (a *App) actionUnselectGroup() {
+	a.ActiveDialog = NewInputDialog("ODZNACZANIE GRUPY [-]", "Wzorzec plików do odznaczenia:", "*.*", func(pattern string) {
+		a.ActiveDialog = nil
+		if pattern != "" {
+			cnt := a.ActivePanel.UnselectByPattern(pattern)
+			a.StatusNotice = fmt.Sprintf("Odznaczono %d plików", cnt)
+		}
+	}, func() {
+		a.ActiveDialog = nil
+	})
+}
+
+func (a *App) actionAbout() {
+	a.ActiveDialog = NewMessageDialog("O PROGRAMIE",
+		"MYC File Manager v1.0.0\n"+
+			"Dwupanelowy menedżer plików dla Windows i Linux.\n"+
+			"Licencja: MIT | Autor: Paweł Łaba & Społeczność\n"+
+			"Wzorowany na Norton Commander, Total Commander i Midnight Commander.",
+		func() { a.ActiveDialog = nil })
 }
 
 func (a *App) runMultiRenameTool() {

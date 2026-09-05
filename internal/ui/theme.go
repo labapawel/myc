@@ -28,6 +28,10 @@ type Theme struct {
 	DialogBorder     tcell.Color
 	CommandPromptFg  tcell.Color
 	CommandInputFg   tcell.Color
+	MenuBarBg        tcell.Color
+	MenuBarFg        tcell.Color
+	MenuBarActiveBg  tcell.Color
+	MenuBarActiveFg  tcell.Color
 }
 
 // ClassicBlueTheme returns the traditional Norton/Total Commander blue theme.
@@ -57,5 +61,9 @@ func ClassicBlueTheme() *Theme {
 		DialogBorder:     tcell.ColorWhite,
 		CommandPromptFg:  tcell.ColorYellow,
 		CommandInputFg:   tcell.ColorWhite,
+		MenuBarBg:        tcell.ColorTeal,
+		MenuBarFg:        tcell.ColorBlack,
+		MenuBarActiveBg:  tcell.ColorNavy,
+		MenuBarActiveFg:  tcell.ColorYellow,
 	}
 }

@@ -11,6 +11,7 @@ Napisany w czystym **Go 1.24** przy użyciu biblioteki `tcell/v2`, ze wsparciem 
 ### 🗂️ Interfejs dwupanelowy
 - **Dwa niezależne panele plików:** Płynna nawigacja, przełączanie aktywnego panelu klawiszem `Tab`.
 - **Układ poziomy lub pionowy:** Przełączanie orientacji paneli w locie (`F2` lub `Ctrl+U`).
+- **Górne menu w stylu Midnight Commander (`F9`):** Klasyczny pasek menu na samej górze ekranu (**Lewy**, **Plik**, **Polecenie**, **Opcje**, **Prawy**) z rozwijanymi listami komend (dropdown), nawigacją strzałkami i skrótami literowymi.
 - **Pasek funkcyjny F1–F10:** Szybki dostęp do kluczowych akcji z poziomu dolnej belki.
 - **Wiersz poleceń:** Wbudowany wiersz poleceń na dole ekranu z obsługą wykonywania poleceń w bieżącym katalogu.
 - **Szybkie zaznaczanie wieloznacznikowe:**
@@ -71,6 +72,7 @@ Napisany w czystym **Go 1.24** przy użyciu biblioteki `tcell/v2`, ze wsparciem 
 | `F6` | Zmiana nazwy / przenoszenie elementów |
 | `F7` | Tworzenie nowego katalogu (Mkdir) |
 | `F8` / `Delete` | Usuwanie pliku lub zaznaczonych elementów |
+| `F9` | Górne menu programu (Midnight Commander) |
 | `F10` | Wyjście z programu |
 | `Tab` | Przełączenie aktywnego panelu (lewy ↔ prawy) |
 | `Spacja` / `Insert` | Zaznaczenie / odznaczenie elementu pod kursorem |
