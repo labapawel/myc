@@ -335,12 +335,28 @@ func (a *App) HandleKey(ev *tcell.EventKey) {
 		}
 		executed, out := a.CommandBar.HandleKey(ev)
 		if executed {
-			a.ActivePanel.Refresh()
-			a.InactivePanel().Refresh()
-			if out != "" {
-				a.ActiveDialog = NewMessageDialog("WYNIK POLECENIA", out, func() {
-					a.ActiveDialog = nil
-				})
+			if strings.HasPrefix(out, "CD:") {
+				target := strings.TrimPrefix(out, "CD:")
+				if target == "" {
+					target = "."
+				}
+				// Support cd .. explicitly
+				if target == ".." {
+					a.ActivePanel.VFS.Parent()
+				} else {
+					if err := a.ActivePanel.VFS.SetPath(target); err != nil {
+						a.StatusNotice = "cd błąd: " + err.Error()
+					}
+				}
+				a.ActivePanel.Refresh()
+			} else {
+				a.ActivePanel.Refresh()
+				a.InactivePanel().Refresh()
+				if out != "" {
+					a.ActiveDialog = NewMessageDialog("WYNIK POLECENIA", out, func() {
+						a.ActiveDialog = nil
+					})
+				}
 			}
 		}
 		return

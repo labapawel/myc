@@ -126,6 +126,12 @@ func (c *CommandBar) HandleKey(ev *tcell.EventKey) (executed bool, output string
 		c.CursorPos = 0
 		c.Active = false
 
+		// Built-in cd handling
+		if strings.HasPrefix(cmdStr, "cd ") || cmdStr == "cd" {
+			target := strings.TrimSpace(strings.TrimPrefix(cmdStr, "cd"))
+			return true, "CD:" + target
+		}
+
 		// Run command
 		out, err := c.runCommand(cmdStr)
 		if err != nil {

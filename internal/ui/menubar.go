@@ -205,6 +205,8 @@ func (m *MenuBar) HandleKey(ev *tcell.EventKey, onAction func(actionID string)) 
 
 	case tcell.KeyRune:
 		r := unicode.ToLower(ev.Rune())
+
+		// First check category shortcuts
 		for idx, cat := range m.Categories {
 			if unicode.ToLower(cat.Key) == r {
 				m.ActiveCatIdx = idx
