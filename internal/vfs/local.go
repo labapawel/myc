@@ -53,7 +53,7 @@ func (l *LocalVFS) SetPath(p string) error {
 
 func (l *LocalVFS) Parent() error {
 	parent := filepath.Dir(l.currentPath)
-	if parent == l.currentPath {
+	if parent == l.currentPath || (len(l.currentPath) == 3 && l.currentPath[1] == ':') {
 		return nil // already at root
 	}
 	return l.SetPath(parent)
@@ -69,7 +69,8 @@ func (l *LocalVFS) List() ([]*FileEntry, error) {
 
 	// Add parent entry if not at root
 	parent := filepath.Dir(l.currentPath)
-	if parent != l.currentPath {
+	isRoot := parent == l.currentPath || (len(l.currentPath) == 3 && l.currentPath[1] == ':')
+	if !isRoot {
 		result = append(result, &FileEntry{
 			Name:    "..",
 			Path:    parent,

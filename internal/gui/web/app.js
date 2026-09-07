@@ -156,7 +156,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadI18n(info.detected_lang);
 
     const drivesRes = await fetch('/api/drives');
-    state.drives = await drivesRes.json();
+    if (drivesRes.ok) {
+        state.drives = await drivesRes.json();
+    } else {
+        state.drives = [];
+    }
+    
     renderDrives('left');
     renderDrives('right');
 

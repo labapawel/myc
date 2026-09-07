@@ -12,7 +12,7 @@ import (
 // This produces a standalone window without browser tabs or URL bars, behaving
 // exactly like a native Total Commander desktop window.
 func LaunchAppWindow(url string) (*exec.Cmd, error) {
-	tempProfile := filepath.Join(os.TempDir(), "myc_desktop_profile")
+	tempProfile := filepath.Join(os.TempDir(), fmt.Sprintf("myc_desktop_profile_%d", os.Getpid()))
 	_ = os.MkdirAll(tempProfile, 0o700)
 
 	var candidates []string
@@ -72,6 +72,7 @@ func LaunchAppWindow(url string) (*exec.Cmd, error) {
 				"--no-default-browser-check",
 				"--disable-sync",
 				"--disable-extensions",
+				"--disable-features=Translate,EdgeSidebar,EdgeShopping",
 			)
 			cmd.SysProcAttr = getSysProcAttr()
 			if err := cmd.Start(); err == nil {
