@@ -107,11 +107,76 @@ html, body {
   margin: 4px 0;
 }
 
-.window-title-badge {
+.window-header-right {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 8px;
+}
+
+.lang-quick-select-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.lang-globe-icon {
+  font-size: 13px;
+  cursor: default;
+}
+
+.lang-select {
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border: 1px solid var(--border-dark);
+  font-size: 11px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  cursor: pointer;
+  max-width: 140px;
+}
+
+.language-dropdown {
+  max-height: 480px;
+  overflow-y: auto;
+  min-width: 380px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  gap: 2px;
+}
+
+.language-action {
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 2px;
+}
+
+.language-action:hover {
+  background: #000080;
+  color: #fff;
+}
+
+.language-action.active {
+  background: #c0d8ff;
+  color: #000080;
+  font-weight: bold;
+}
+
+body.tc-dark .language-action.active {
+  background: #1f4f7a;
+  color: #ffffff;
+}
+
+.window-title-badge {
   font-weight: bold;
   color: #555;
-  padding-right: 8px;
   align-self: center;
 }
 

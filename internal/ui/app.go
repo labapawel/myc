@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
+	"myc/internal/i18n"
 	"myc/internal/operations"
 )
 
@@ -26,10 +27,20 @@ type App struct {
 	MenuBar         *MenuBar
 	Running         bool
 	StatusNotice    string
+	Lang            string
 }
 
-// NewApp initializes the dual panel application.
+// NewApp initializes the dual panel application with default language (pl).
 func NewApp(leftPath, rightPath string) (*App, error) {
+	return NewAppWithLang(leftPath, rightPath, "pl")
+}
+
+// NewAppWithLang initializes the dual panel application with the specified language.
+func NewAppWithLang(leftPath, rightPath, lang string) (*App, error) {
+	if lang == "" {
+		lang = i18n.DetectLanguage()
+	}
+
 	s, err := tcell.NewScreen()
 	if err != nil {
 		return nil, fmt.Errorf("błąd inicjalizacji terminala: %w", err)
@@ -40,12 +51,15 @@ func NewApp(leftPath, rightPath string) (*App, error) {
 
 	theme := ClassicBlueTheme()
 
-	left, err := NewPanel("LEWY", leftPath)
+	leftTitle := strings.ToUpper(i18n.T(lang, "menu_left"))
+	rightTitle := strings.ToUpper(i18n.T(lang, "menu_right"))
+
+	left, err := NewPanel(leftTitle, leftPath)
 	if err != nil {
 		s.Fini()
 		return nil, err
 	}
-	right, err := NewPanel("PRAWY", rightPath)
+	right, err := NewPanel(rightTitle, rightPath)
 	if err != nil {
 		s.Fini()
 		return nil, err
@@ -62,8 +76,9 @@ func NewApp(leftPath, rightPath string) (*App, error) {
 		ActivePanel:     left,
 		HorizontalSplit: false,
 		CommandBar:      NewCommandBar(),
-		MenuBar:         NewMenuBar(),
+		MenuBar:         NewMenuBarWithLang(lang),
 		Running:         true,
+		Lang:            lang,
 	}
 
 	return app, nil
@@ -171,7 +186,7 @@ func (a *App) Draw() {
 	a.CommandBar.Draw(a.Screen, h-2, w, a.ActivePanel.VFS.Path(), a.Theme)
 
 	// Function Key Strip
-	DrawKeyBar(a.Screen, h-1, w, a.Theme)
+	DrawKeyBarWithLang(a.Screen, h-1, w, a.Theme, a.Lang)
 
 	// Top Menu Bar (Midnight Commander style: Lewy Plik Polecenie Opcje Prawy)
 	if a.MenuBar != nil {
@@ -669,6 +684,8 @@ func (a *App) handleMenuAction(actionID string) {
 		a.StatusNotice = "Zaznaczono wszystkie elementy"
 	case "about":
 		a.actionAbout()
+	case "language":
+		a.actionSelectLanguage()
 	case "left_refresh":
 		a.LeftPanel.Refresh()
 	case "left_activate":
@@ -1082,4 +1099,30 @@ func (a *App) actionQuit() {
 	}, func() {
 		a.ActiveDialog = nil
 	})
+}
+
+func (a *App) actionSelectLanguage() {
+	a.ActiveDialog = NewInputDialog(
+		i18n.T(a.Lang, "menu_language"),
+		"Kod języka (pl, en, de, fr, es, it, pt, nl, cs, sk, hu, ro, uk, ru...):",
+		a.Lang,
+		func(code string) {
+			code = i18n.Normalize(code)
+			if i18n.IsValid(code) {
+				a.Lang = code
+				a.MenuBar = NewMenuBarWithLang(code)
+				a.LeftPanel.ID = strings.ToUpper(i18n.T(code, "menu_left"))
+				a.RightPanel.ID = strings.ToUpper(i18n.T(code, "menu_right"))
+				a.StatusNotice = i18n.T(code, "lbl_saved")
+			} else {
+				a.StatusNotice = i18n.T(a.Lang, "lbl_error") + ": nieznany kod języka"
+			}
+			a.ActiveDialog = nil
+			a.Draw()
+		},
+		func() {
+			a.ActiveDialog = nil
+			a.Draw()
+		},
+	)
 }

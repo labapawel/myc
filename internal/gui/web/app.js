@@ -36,6 +36,112 @@ const state = {
   currentEditorFile: null
 };
 
+// --- Internationalization (i18n) ---
+let i18nData = {
+  languages: [],
+  translations: {},
+  currentLang: 'pl'
+};
+
+function t(key, fallback = '') {
+  const dict = (i18nData.translations && i18nData.translations[i18nData.currentLang]) ||
+               (i18nData.translations && i18nData.translations['pl']) ||
+               (i18nData.translations && i18nData.translations['en']) || {};
+  return dict[key] || fallback || key;
+}
+
+async function loadI18n(preferredLang) {
+  try {
+    const res = await fetch('/api/i18n');
+    const data = await res.json();
+    i18nData.languages = data.languages || [];
+    i18nData.translations = data.translations || {};
+
+    let lang = localStorage.getItem('myc_language') || preferredLang;
+    if (!lang && navigator.language) {
+      const nav = navigator.language.split('-')[0].toLowerCase();
+      if (i18nData.translations[nav]) {
+        lang = nav;
+      }
+    }
+    if (!lang || !i18nData.translations[lang]) {
+      lang = 'pl';
+    }
+
+    renderLanguageMenu();
+    setLanguage(lang, false);
+  } catch (err) {
+    console.error('Błąd ładowania i18n:', err);
+  }
+}
+
+function renderLanguageMenu() {
+  const menuContainer = document.getElementById('language-menu-list');
+  const selectEl = document.getElementById('quick-lang-select');
+  if (menuContainer) menuContainer.innerHTML = '';
+  if (selectEl) selectEl.innerHTML = '';
+
+  i18nData.languages.forEach(l => {
+    // Menu item
+    if (menuContainer) {
+      const item = document.createElement('div');
+      item.className = `language-action ${l.code === i18nData.currentLang ? 'active' : ''}`;
+      item.dataset.langCode = l.code;
+      item.innerHTML = `<span style="font-size:13px;">${l.flag}</span> <span>${escapeHTML(l.name)}</span> <span style="font-size:10px; color:#888; margin-left:auto;">(${l.code})</span>`;
+      item.onclick = () => setLanguage(l.code);
+      menuContainer.appendChild(item);
+    }
+
+    // Select option
+    if (selectEl) {
+      const opt = document.createElement('option');
+      opt.value = l.code;
+      opt.textContent = `${l.flag} ${l.name}`;
+      if (l.code === i18nData.currentLang) opt.selected = true;
+      selectEl.appendChild(opt);
+    }
+  });
+}
+
+function setLanguage(langCode, save = true) {
+  if (!i18nData.translations[langCode]) {
+    langCode = 'pl';
+  }
+  i18nData.currentLang = langCode;
+  if (save) {
+    localStorage.setItem('myc_language', langCode);
+  }
+
+  document.documentElement.lang = langCode;
+  document.title = t('app_title', 'myc - Total Commander Desktop');
+
+  // Update quick select dropdown
+  const selectEl = document.getElementById('quick-lang-select');
+  if (selectEl && selectEl.value !== langCode) {
+    selectEl.value = langCode;
+  }
+
+  // Update language menu active state
+  document.querySelectorAll('.language-action').forEach(el => {
+    el.classList.toggle('active', el.dataset.langCode === langCode);
+  });
+
+  // Update all elements with data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const translated = t(key);
+    if (translated) {
+      el.textContent = translated;
+    }
+  });
+
+  // Re-render panels status bar and drives
+  renderDrives('left');
+  renderDrives('right');
+  updateStatus('left');
+  updateStatus('right');
+}
+
 // --- Initialization ---
 window.addEventListener('DOMContentLoaded', async () => {
   // Start heartbeat
@@ -45,6 +151,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   try {
     const infoRes = await fetch('/api/info');
     const info = await infoRes.json();
+
+    // Load i18n translations
+    await loadI18n(info.detected_lang);
 
     const drivesRes = await fetch('/api/drives');
     state.drives = await drivesRes.json();
@@ -89,7 +198,7 @@ function renderDrives(panelId) {
     const btn = document.createElement('button');
     btn.className = 'drive-btn';
     btn.textContent = `[-${d.letter.toLowerCase()}-]`;
-    btn.title = `${d.name} (${formatSize(d.freeSize)} wolne)`;
+    btn.title = `${d.name} (${formatSize(d.freeSize)} ${t('lbl_free')})`;
     btn.onclick = () => {
       loadPanel(panelId, d.path);
     };
@@ -166,7 +275,7 @@ async function loadPanel(panelId, targetPath) {
 
     document.getElementById(`${panelId}-path-input`).value = p.path;
     document.getElementById(`${panelId}-drive-space`).textContent =
-      data.free_size ? `${formatSize(data.free_size)} wolne z ${formatSize(data.total_size)}` : '';
+      data.free_size ? `${formatSize(data.free_size)} ${t('lbl_free')} / ${formatSize(data.total_size)}` : '';
 
     if (panelId === state.activePanel) {
       updateCmdPrompt();
@@ -333,7 +442,7 @@ function updateStatus(panelId) {
     }
   });
 
-  const text = `${formatBytes(selBytes)} / ${formatBytes(totalBytes)} w ${selCount} / ${totalCount} plikach`;
+  const text = `${formatBytes(selBytes)} / ${formatBytes(totalBytes)} ${t('lbl_in')} ${selCount} / ${totalCount} ${t('lbl_files')}`;
   document.getElementById(`${panelId}-status-text`).textContent = text;
 }
 
@@ -698,7 +807,7 @@ async function saveEditorContent() {
 function showCopyDialog() {
   const items = getActiveSelection();
   if (items.length === 0) return;
-  document.getElementById('copy-summary').textContent = `Kopiuj ${items.length} plik(ów) do:`;
+  document.getElementById('copy-summary').textContent = `${t('dlg_btn_copy')} ${items.length} ${t('lbl_files')} ->`;
   document.getElementById('copy-dest-input').value = getInactivePanelPath();
   openModal('modal-copy');
 }
@@ -731,10 +840,10 @@ function showMoveDialog() {
   const items = getActiveSelection();
   if (items.length === 0) return;
   if (items.length === 1) {
-    document.getElementById('move-summary').textContent = `Zmień nazwę / przenieś do:`;
+    document.getElementById('move-summary').textContent = `${t('dlg_move_title')}:`;
     document.getElementById('move-dest-input').value = getInactivePanelPath();
   } else {
-    document.getElementById('move-summary').textContent = `Przenieś ${items.length} plik(ów) do:`;
+    document.getElementById('move-summary').textContent = `${t('dlg_btn_move')} ${items.length} ${t('lbl_files')} ->`;
     document.getElementById('move-dest-input').value = getInactivePanelPath();
   }
   openModal('modal-move');
@@ -765,7 +874,7 @@ async function executeMove() {
 
 // --- Mkdir (F7) ---
 function showMkdirDialog() {
-  document.getElementById('mkdir-name-input').value = 'Nowy katalog';
+  document.getElementById('mkdir-name-input').value = t('act_mkdir', 'Nowy katalog');
   openModal('modal-mkdir');
   setTimeout(() => {
     const input = document.getElementById('mkdir-name-input');
@@ -808,7 +917,7 @@ function showDeleteDialog() {
     li.textContent = i.name;
     list.appendChild(li);
   });
-  document.getElementById('delete-summary').textContent = `Czy na pewno chcesz usunąć ${items.length} element(ów)?`;
+  document.getElementById('delete-summary').textContent = `${t('dlg_delete_confirm')} (${items.length})`;
   openModal('modal-delete');
 }
 

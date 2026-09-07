@@ -76,4 +76,20 @@ func TestServerAPI(t *testing.T) {
 	if wFile.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", wFile.Code)
 	}
+
+	// Test /api/i18n
+	reqI18n := httptest.NewRequest("GET", "/api/i18n", nil)
+	wI18n := httptest.NewRecorder()
+	srv.server.Handler.ServeHTTP(wI18n, reqI18n)
+	if wI18n.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", wI18n.Code)
+	}
+	var i18nResp map[string]any
+	if err := json.Unmarshal(wI18n.Body.Bytes(), &i18nResp); err != nil {
+		t.Fatalf("failed to decode /api/i18n response: %v", err)
+	}
+	langs, ok := i18nResp["languages"].([]any)
+	if !ok || len(langs) != 43 {
+		t.Fatalf("expected 43 languages in /api/i18n response, got %v", langs)
+	}
 }

@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"myc/internal/i18n"
 	"myc/internal/operations"
 	"myc/internal/version"
 	"myc/internal/vfs"
@@ -98,6 +99,7 @@ func NewServer(leftPath, rightPath string) (*Server, error) {
 	mux.HandleFunc("/api/split", s.handleSplit)
 	mux.HandleFunc("/api/join", s.handleJoin)
 	mux.HandleFunc("/api/exec", s.handleExec)
+	mux.HandleFunc("/api/i18n", s.handleI18n)
 	mux.HandleFunc("/api/heartbeat", s.handleHeartbeat)
 	mux.HandleFunc("/api/exit", s.handleExit)
 
@@ -161,10 +163,17 @@ func (s *Server) handleExit(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleInfo(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
-		"version":      version.Version,
-		"initial_left": s.initialL,
+		"version":       version.Version,
+		"initial_left":  s.initialL,
 		"initial_right": s.initialR,
+		"detected_lang": i18n.DetectLanguage(),
 	})
+}
+
+func (s *Server) handleI18n(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(i18n.RawJSON())
 }
 
 func (s *Server) handleDrives(w http.ResponseWriter, r *http.Request) {

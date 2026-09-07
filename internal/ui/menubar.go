@@ -5,6 +5,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/uniseg"
+	"myc/internal/i18n"
 )
 
 // MenuItem represents a single command entry in a dropdown menu.
@@ -34,73 +35,79 @@ type MenuBar struct {
 
 // NewMenuBar initializes the standard Midnight Commander top menu bar.
 func NewMenuBar() *MenuBar {
+	return NewMenuBarWithLang("pl")
+}
+
+// NewMenuBarWithLang initializes the menu bar localized in the requested language.
+func NewMenuBarWithLang(lang string) *MenuBar {
 	categories := []MenuCategory{
 		{
-			Title: "Lewy",
+			Title: i18n.T(lang, "menu_left"),
 			Key:   'l',
 			Items: []MenuItem{
-				{Title: "Odśwież panel", Shortcut: "Ctrl+R", ActionID: "left_refresh"},
-				{Title: "Przełącz na lewy", Shortcut: "Tab", ActionID: "left_activate"},
+				{Title: i18n.T(lang, "act_refresh"), Shortcut: "Ctrl+R", ActionID: "left_refresh"},
+				{Title: i18n.T(lang, "menu_left"), Shortcut: "Tab", ActionID: "left_activate"},
 				{IsSeparator: true},
-				{Title: "Katalog domowy", Shortcut: "~", ActionID: "left_home"},
-				{Title: "Katalog główny", Shortcut: "/", ActionID: "left_root"},
+				{Title: i18n.T(lang, "lbl_home_dir"), Shortcut: "~", ActionID: "left_home"},
+				{Title: i18n.T(lang, "lbl_parent_dir"), Shortcut: "/", ActionID: "left_root"},
 			},
 		},
 		{
-			Title: "Plik",
+			Title: i18n.T(lang, "menu_file"),
 			Key:   'p',
 			Items: []MenuItem{
-				{Title: "Podgląd", Shortcut: "F3", ActionID: "view"},
-				{Title: "Edycja", Shortcut: "F4", ActionID: "edit"},
-				{Title: "Kopiuj", Shortcut: "F5", ActionID: "copy"},
-				{Title: "Zmień nazwę / Przenieś", Shortcut: "F6", ActionID: "move"},
-				{Title: "Nowy katalog", Shortcut: "F7", ActionID: "mkdir"},
-				{Title: "Usuń", Shortcut: "F8", ActionID: "delete"},
+				{Title: i18n.T(lang, "act_view"), Shortcut: "F3", ActionID: "view"},
+				{Title: i18n.T(lang, "act_edit"), Shortcut: "F4", ActionID: "edit"},
+				{Title: i18n.T(lang, "act_copy"), Shortcut: "F5", ActionID: "copy"},
+				{Title: i18n.T(lang, "act_move"), Shortcut: "F6", ActionID: "move"},
+				{Title: i18n.T(lang, "act_mkdir"), Shortcut: "F7", ActionID: "mkdir"},
+				{Title: i18n.T(lang, "act_delete"), Shortcut: "F8", ActionID: "delete"},
 				{IsSeparator: true},
-				{Title: "Dzielenie pliku...", Shortcut: "", ActionID: "split"},
-				{Title: "Łączenie plików...", Shortcut: "", ActionID: "join"},
-				{Title: "Koduj (UUE/XXE/MIME)...", Shortcut: "", ActionID: "encode"},
-				{Title: "Dekoduj plik...", Shortcut: "", ActionID: "decode"},
+				{Title: i18n.T(lang, "act_split"), Shortcut: "", ActionID: "split"},
+				{Title: i18n.T(lang, "act_join"), Shortcut: "", ActionID: "join"},
+				{Title: i18n.T(lang, "act_encode"), Shortcut: "", ActionID: "encode"},
+				{Title: i18n.T(lang, "act_decode"), Shortcut: "", ActionID: "decode"},
 				{IsSeparator: true},
-				{Title: "Wyjście", Shortcut: "F10", ActionID: "quit"},
+				{Title: i18n.T(lang, "act_exit"), Shortcut: "F10", ActionID: "quit"},
 			},
 		},
 		{
-			Title: "Polecenie",
+			Title: i18n.T(lang, "menu_commands"),
 			Key:   'c',
 			Items: []MenuItem{
-				{Title: "Szukaj plików", Shortcut: "Ctrl+F", ActionID: "search"},
-				{Title: "Porównaj pliki (Diff)", Shortcut: "", ActionID: "diff"},
-				{Title: "Wyszukaj duplikaty", Shortcut: "", ActionID: "duplicates"},
-				{Title: "Synchronizuj katalogi", Shortcut: "", ActionID: "sync"},
-				{Title: "Masowa zmiana nazw", Shortcut: "", ActionID: "rename"},
+				{Title: i18n.T(lang, "act_search"), Shortcut: "Ctrl+F", ActionID: "search"},
+				{Title: i18n.T(lang, "act_compare"), Shortcut: "", ActionID: "diff"},
+				{Title: i18n.T(lang, "tb_search"), Shortcut: "", ActionID: "duplicates"},
+				{Title: i18n.T(lang, "act_sync"), Shortcut: "", ActionID: "sync"},
+				{Title: i18n.T(lang, "act_multi_rename"), Shortcut: "", ActionID: "rename"},
 				{Title: "Transmisja szeregowa", Shortcut: "", ActionID: "serial"},
 			},
 		},
 		{
-			Title: "Opcje",
+			Title: i18n.T(lang, "menu_options"),
 			Key:   'o',
 			Items: []MenuItem{
-				{Title: "Układ poziomy/pionowy", Shortcut: "F2", ActionID: "split_toggle"},
-				{Title: "Odśwież oba panele", Shortcut: "Ctrl+R", ActionID: "refresh"},
+				{Title: i18n.T(lang, "f2_layout"), Shortcut: "F2", ActionID: "split_toggle"},
+				{Title: i18n.T(lang, "act_refresh"), Shortcut: "Ctrl+R", ActionID: "refresh"},
 				{IsSeparator: true},
-				{Title: "Zaznacz grupę", Shortcut: "+", ActionID: "select_group"},
-				{Title: "Odznacz grupę", Shortcut: "-", ActionID: "unselect_group"},
-				{Title: "Odwróć zaznaczenie", Shortcut: "*", ActionID: "invert_select"},
-				{Title: "Zaznacz wszystko", Shortcut: "Ctrl+A", ActionID: "select_all"},
+				{Title: i18n.T(lang, "act_select_group"), Shortcut: "+", ActionID: "select_group"},
+				{Title: i18n.T(lang, "act_unselect_group"), Shortcut: "-", ActionID: "unselect_group"},
+				{Title: i18n.T(lang, "act_invert_select"), Shortcut: "*", ActionID: "invert_select"},
+				{Title: i18n.T(lang, "act_select_all"), Shortcut: "Ctrl+A", ActionID: "select_all"},
 				{IsSeparator: true},
-				{Title: "O programie", Shortcut: "F1", ActionID: "about"},
+				{Title: i18n.T(lang, "menu_language") + "...", Shortcut: "", ActionID: "language"},
+				{Title: i18n.T(lang, "act_about"), Shortcut: "F1", ActionID: "about"},
 			},
 		},
 		{
-			Title: "Prawy",
+			Title: i18n.T(lang, "menu_right"),
 			Key:   'r',
 			Items: []MenuItem{
-				{Title: "Odśwież panel", Shortcut: "Ctrl+R", ActionID: "right_refresh"},
-				{Title: "Przełącz na prawy", Shortcut: "Tab", ActionID: "right_activate"},
+				{Title: i18n.T(lang, "act_refresh"), Shortcut: "Ctrl+R", ActionID: "right_refresh"},
+				{Title: i18n.T(lang, "menu_right"), Shortcut: "Tab", ActionID: "right_activate"},
 				{IsSeparator: true},
-				{Title: "Katalog domowy", Shortcut: "~", ActionID: "right_home"},
-				{Title: "Katalog główny", Shortcut: "/", ActionID: "right_root"},
+				{Title: i18n.T(lang, "lbl_home_dir"), Shortcut: "~", ActionID: "right_home"},
+				{Title: i18n.T(lang, "lbl_parent_dir"), Shortcut: "/", ActionID: "right_root"},
 			},
 		},
 	}

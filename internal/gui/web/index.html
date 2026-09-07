@@ -9,70 +9,83 @@
 <body class="tc-theme">
   <!-- Top Menu Bar -->
   <header id="menu-bar" class="tc-menubar">
-    <div class="menu-item" data-menu="file">Plik
+    <div class="menu-item" data-menu="file"><span data-i18n="menu_file">Plik</span>
       <div class="dropdown-menu">
-        <div class="menu-action" onclick="showLister()">Podgląd (F3)</div>
-        <div class="menu-action" onclick="showEditor()">Edycja (F4)</div>
-        <div class="menu-action" onclick="showCopyDialog()">Kopiuj (F5)</div>
-        <div class="menu-action" onclick="showMoveDialog()">Zmień / Przenieś (F6)</div>
-        <div class="menu-action" onclick="showMkdirDialog()">Nowy katalog (F7)</div>
-        <div class="menu-action" onclick="showDeleteDialog()">Usuń (F8)</div>
+        <div class="menu-action" onclick="showLister()" data-i18n="act_view">Podgląd (F3)</div>
+        <div class="menu-action" onclick="showEditor()" data-i18n="act_edit">Edycja (F4)</div>
+        <div class="menu-action" onclick="showCopyDialog()" data-i18n="act_copy">Kopiuj (F5)</div>
+        <div class="menu-action" onclick="showMoveDialog()" data-i18n="act_move">Zmień / Przenieś (F6)</div>
+        <div class="menu-action" onclick="showMkdirDialog()" data-i18n="act_mkdir">Nowy katalog (F7)</div>
+        <div class="menu-action" onclick="showDeleteDialog()" data-i18n="act_delete">Usuń (F8)</div>
         <div class="menu-separator"></div>
-        <div class="menu-action" onclick="showSplitDialog()">Podziel plik...</div>
-        <div class="menu-action" onclick="showJoinDialog()">Połącz pliki...</div>
+        <div class="menu-action" onclick="showSplitDialog()" data-i18n="act_split">Podziel plik...</div>
+        <div class="menu-action" onclick="showJoinDialog()" data-i18n="act_join">Połącz pliki...</div>
         <div class="menu-separator"></div>
-        <div class="menu-action" onclick="exitApp()">Zakończ (Alt+F4)</div>
+        <div class="menu-action" onclick="exitApp()" data-i18n="act_exit">Zakończ (Alt+F4)</div>
       </div>
     </div>
-    <div class="menu-item" data-menu="select">Zaznacz
+    <div class="menu-item" data-menu="select"><span data-i18n="menu_select">Zaznacz</span>
       <div class="dropdown-menu">
-        <div class="menu-action" onclick="selectPatternPrompt()">Zaznacz grupę (+)</div>
-        <div class="menu-action" onclick="unselectPatternPrompt()">Odznacz grupę (-)</div>
-        <div class="menu-action" onclick="selectAll()">Zaznacz wszystko (Ctrl+A)</div>
-        <div class="menu-action" onclick="invertSelection()">Odwróć zaznaczenie (*)</div>
+        <div class="menu-action" onclick="selectPatternPrompt()" data-i18n="act_select_group">Zaznacz grupę (+)</div>
+        <div class="menu-action" onclick="unselectPatternPrompt()" data-i18n="act_unselect_group">Odznacz grupę (-)</div>
+        <div class="menu-action" onclick="selectAll()" data-i18n="act_select_all">Zaznacz wszystko (Ctrl+A)</div>
+        <div class="menu-action" onclick="invertSelection()" data-i18n="act_invert_select">Odwróć zaznaczenie (*)</div>
       </div>
     </div>
-    <div class="menu-item" data-menu="commands">Polecenia
+    <div class="menu-item" data-menu="commands"><span data-i18n="menu_commands">Polecenia</span>
       <div class="dropdown-menu">
-        <div class="menu-action" onclick="showSearchDialog()">Szukaj plików (Alt+F7 / Ctrl+F)</div>
-        <div class="menu-action" onclick="showSyncDialog()">Synchronizuj katalogi...</div>
-        <div class="menu-action" onclick="showMultiRenameDialog()">Narzędzie wielokrotnej zamiany nazw (Ctrl+M)</div>
-        <div class="menu-action" onclick="compareFilesAction()">Porównaj wg zawartości (Diff)</div>
+        <div class="menu-action" onclick="showSearchDialog()" data-i18n="act_search">Szukaj plików (Alt+F7 / Ctrl+F)</div>
+        <div class="menu-action" onclick="showSyncDialog()" data-i18n="act_sync">Synchronizuj katalogi...</div>
+        <div class="menu-action" onclick="showMultiRenameDialog()" data-i18n="act_multi_rename">Narzędzie wielokrotnej zamiany nazw (Ctrl+M)</div>
+        <div class="menu-action" onclick="compareFilesAction()" data-i18n="act_compare">Porównaj wg zawartości (Diff)</div>
         <div class="menu-separator"></div>
-        <div class="menu-action" onclick="refreshBothPanels()">Odśwież panele (Ctrl+R)</div>
+        <div class="menu-action" onclick="refreshBothPanels()" data-i18n="act_refresh">Odśwież panele (Ctrl+R)</div>
       </div>
     </div>
-    <div class="menu-item" data-menu="view">Widok
+    <div class="menu-item" data-menu="view"><span data-i18n="menu_view">Widok</span>
       <div class="dropdown-menu">
-        <div class="menu-action" onclick="toggleTheme()">Przełącz motyw (Jasny TC / Ciemny TC)</div>
-        <div class="menu-action" onclick="refreshBothPanels()">Odśwież widok</div>
+        <div class="menu-action" onclick="toggleTheme()" data-i18n="act_theme_toggle">Przełącz motyw (Jasny TC / Ciemny TC)</div>
+        <div class="menu-action" onclick="refreshBothPanels()" data-i18n="act_refresh">Odśwież widok</div>
       </div>
     </div>
-    <div class="menu-item" data-menu="help">Pomoc
+    <div class="menu-item" data-menu="language"><span data-i18n="menu_language">Język</span>
+      <div class="dropdown-menu language-dropdown" id="language-menu-list">
+        <!-- populated dynamically with all 43 European languages -->
+      </div>
+    </div>
+    <div class="menu-item" data-menu="help"><span data-i18n="menu_help">Pomoc</span>
       <div class="dropdown-menu">
-        <div class="menu-action" onclick="showAboutDialog()">O programie myc</div>
+        <div class="menu-action" onclick="showAboutDialog()" data-i18n="act_about">O programie myc</div>
       </div>
     </div>
-    <div class="window-title-badge">myc Desktop Commander</div>
+    <div class="window-header-right">
+      <div class="lang-quick-select-container">
+        <span class="lang-globe-icon" title="Wybierz język / Choose language">🌐</span>
+        <select id="quick-lang-select" class="lang-select" onchange="setLanguage(this.value)">
+          <!-- populated dynamically -->
+        </select>
+      </div>
+      <div class="window-title-badge">myc Desktop Commander</div>
+    </div>
   </header>
 
   <!-- Toolbar Bar with Icon Buttons -->
   <nav id="toolbar" class="tc-toolbar">
-    <button class="tb-btn" title="Odśwież (Ctrl+R)" onclick="refreshActivePanel()">🔄 Odśwież</button>
+    <button class="tb-btn" title="Odśwież (Ctrl+R)" onclick="refreshActivePanel()" data-i18n="tb_refresh">🔄 Odśwież</button>
     <div class="tb-sep"></div>
-    <button class="tb-btn" title="Podgląd pliku (F3)" onclick="showLister()">👁️ Podgląd</button>
-    <button class="tb-btn" title="Edycja pliku (F4)" onclick="showEditor()">✏️ Edycja</button>
-    <button class="tb-btn" title="Kopiuj (F5)" onclick="showCopyDialog()">📋 Kopiuj</button>
-    <button class="tb-btn" title="Przenieś (F6)" onclick="showMoveDialog()">🚚 Przenieś</button>
-    <button class="tb-btn" title="Nowy katalog (F7)" onclick="showMkdirDialog()">📁 Nowy kat.</button>
-    <button class="tb-btn" title="Usuń (F8)" onclick="showDeleteDialog()">🗑️ Usuń</button>
+    <button class="tb-btn" title="Podgląd pliku (F3)" onclick="showLister()" data-i18n="tb_view">👁️ Podgląd</button>
+    <button class="tb-btn" title="Edycja pliku (F4)" onclick="showEditor()" data-i18n="tb_edit">✏️ Edycja</button>
+    <button class="tb-btn" title="Kopiuj (F5)" onclick="showCopyDialog()" data-i18n="tb_copy">📋 Kopiuj</button>
+    <button class="tb-btn" title="Przenieś (F6)" onclick="showMoveDialog()" data-i18n="tb_move">🚚 Przenieś</button>
+    <button class="tb-btn" title="Nowy katalog (F7)" onclick="showMkdirDialog()" data-i18n="tb_mkdir">📁 Nowy kat.</button>
+    <button class="tb-btn" title="Usuń (F8)" onclick="showDeleteDialog()" data-i18n="tb_delete">🗑️ Usuń</button>
     <div class="tb-sep"></div>
-    <button class="tb-btn" title="Szukaj plików (Ctrl+F)" onclick="showSearchDialog()">🔍 Szukaj</button>
-    <button class="tb-btn" title="Wielokrotna zamiana nazw (Ctrl+M)" onclick="showMultiRenameDialog()">🏷️ Multi-Rename</button>
-    <button class="tb-btn" title="Synchronizuj katalogi" onclick="showSyncDialog()">⚖️ Synchronizuj</button>
-    <button class="tb-btn" title="Porównaj pliki (Diff)" onclick="compareFilesAction()">📊 Porównaj</button>
-    <button class="tb-btn" title="Dzielenie pliku" onclick="showSplitDialog()">✂️ Podziel</button>
-    <button class="tb-btn" title="Łączenie plików" onclick="showJoinDialog()">🧩 Połącz</button>
+    <button class="tb-btn" title="Szukaj plików (Ctrl+F)" onclick="showSearchDialog()" data-i18n="tb_search">🔍 Szukaj</button>
+    <button class="tb-btn" title="Wielokrotna zamiana nazw (Ctrl+M)" onclick="showMultiRenameDialog()" data-i18n="tb_rename">🏷️ Multi-Rename</button>
+    <button class="tb-btn" title="Synchronizuj katalogi" onclick="showSyncDialog()" data-i18n="tb_sync">⚖️ Synchronizuj</button>
+    <button class="tb-btn" title="Porównaj pliki (Diff)" onclick="compareFilesAction()" data-i18n="tb_compare">📊 Porównaj</button>
+    <button class="tb-btn" title="Dzielenie pliku" onclick="showSplitDialog()" data-i18n="tb_split">✂️ Podziel</button>
+    <button class="tb-btn" title="Łączenie plików" onclick="showJoinDialog()" data-i18n="tb_join">🧩 Połącz</button>
   </nav>
 
   <!-- Main Dual Panel Container -->
@@ -102,11 +115,11 @@
         <table class="file-table" id="left-file-table">
           <thead>
             <tr>
-              <th class="col-name" onclick="sortPanel('left', 'name')">Nazwa <span class="sort-indicator" id="left-sort-name">▲</span></th>
-              <th class="col-ext" onclick="sortPanel('left', 'ext')">Rozsz.</th>
-              <th class="col-size" onclick="sortPanel('left', 'size')">Rozmiar</th>
-              <th class="col-date" onclick="sortPanel('left', 'date')">Data</th>
-              <th class="col-attr">Atryb</th>
+              <th class="col-name" onclick="sortPanel('left', 'name')"><span data-i18n="col_name">Nazwa</span> <span class="sort-indicator" id="left-sort-name">▲</span></th>
+              <th class="col-ext" onclick="sortPanel('left', 'ext')" data-i18n="col_ext">Rozsz.</th>
+              <th class="col-size" onclick="sortPanel('left', 'size')" data-i18n="col_size">Rozmiar</th>
+              <th class="col-date" onclick="sortPanel('left', 'date')" data-i18n="col_date">Data</th>
+              <th class="col-attr" data-i18n="col_attr">Atryb</th>
             </tr>
           </thead>
           <tbody id="left-file-tbody"></tbody>
@@ -143,11 +156,11 @@
         <table class="file-table" id="right-file-table">
           <thead>
             <tr>
-              <th class="col-name" onclick="sortPanel('right', 'name')">Nazwa <span class="sort-indicator" id="right-sort-name">▲</span></th>
-              <th class="col-ext" onclick="sortPanel('right', 'ext')">Rozsz.</th>
-              <th class="col-size" onclick="sortPanel('right', 'size')">Rozmiar</th>
-              <th class="col-date" onclick="sortPanel('right', 'date')">Data</th>
-              <th class="col-attr">Atryb</th>
+              <th class="col-name" onclick="sortPanel('right', 'name')"><span data-i18n="col_name">Nazwa</span> <span class="sort-indicator" id="right-sort-name">▲</span></th>
+              <th class="col-ext" onclick="sortPanel('right', 'ext')" data-i18n="col_ext">Rozsz.</th>
+              <th class="col-size" onclick="sortPanel('right', 'size')" data-i18n="col_size">Rozmiar</th>
+              <th class="col-date" onclick="sortPanel('right', 'date')" data-i18n="col_date">Data</th>
+              <th class="col-attr" data-i18n="col_attr">Atryb</th>
             </tr>
           </thead>
           <tbody id="right-file-tbody"></tbody>
@@ -169,16 +182,16 @@
 
   <!-- Bottom Function Keys Bar (F1..F10 / Total Commander style) -->
   <footer id="fkeys-bar" class="tc-fkeys-bar">
-    <button class="fkey-btn" onclick="showHelp()"><span class="fnum">F1</span> Pomoc</button>
-    <button class="fkey-btn" onclick="refreshBothPanels()"><span class="fnum">F2</span> Odśwież</button>
-    <button class="fkey-btn" onclick="showLister()"><span class="fnum">F3</span> Podgląd</button>
-    <button class="fkey-btn" onclick="showEditor()"><span class="fnum">F4</span> Edycja</button>
-    <button class="fkey-btn" onclick="showCopyDialog()"><span class="fnum">F5</span> Kopiuj</button>
-    <button class="fkey-btn" onclick="showMoveDialog()"><span class="fnum">F6</span> Zmień/Przen</button>
-    <button class="fkey-btn" onclick="showMkdirDialog()"><span class="fnum">F7</span> Nowy kat.</button>
-    <button class="fkey-btn" onclick="showDeleteDialog()"><span class="fnum">F8</span> Usuń</button>
-    <button class="fkey-btn" onclick="showSearchDialog()"><span class="fnum">Alt+F7</span> Szukaj</button>
-    <button class="fkey-btn" onclick="exitApp()"><span class="fnum">Alt+F4</span> Wyjście</button>
+    <button class="fkey-btn" onclick="showHelp()"><span class="fnum">F1</span> <span data-i18n="f1_help">Pomoc</span></button>
+    <button class="fkey-btn" onclick="refreshBothPanels()"><span class="fnum">F2</span> <span data-i18n="f2_layout">Odśwież</span></button>
+    <button class="fkey-btn" onclick="showLister()"><span class="fnum">F3</span> <span data-i18n="f3_view">Podgląd</span></button>
+    <button class="fkey-btn" onclick="showEditor()"><span class="fnum">F4</span> <span data-i18n="f4_edit">Edycja</span></button>
+    <button class="fkey-btn" onclick="showCopyDialog()"><span class="fnum">F5</span> <span data-i18n="f5_copy">Kopiuj</span></button>
+    <button class="fkey-btn" onclick="showMoveDialog()"><span class="fnum">F6</span> <span data-i18n="f6_move">Zmień/Przen</span></button>
+    <button class="fkey-btn" onclick="showMkdirDialog()"><span class="fnum">F7</span> <span data-i18n="f7_mkdir">Nowy kat.</span></button>
+    <button class="fkey-btn" onclick="showDeleteDialog()"><span class="fnum">F8</span> <span data-i18n="f8_delete">Usuń</span></button>
+    <button class="fkey-btn" onclick="showSearchDialog()"><span class="fnum">Alt+F7</span> <span data-i18n="tb_search">Szukaj</span></button>
+    <button class="fkey-btn" onclick="exitApp()"><span class="fnum">Alt+F4</span> <span data-i18n="alt_f4_exit">Wyjście</span></button>
   </footer>
 
   <!-- MODAL DIALOGS -->

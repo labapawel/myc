@@ -22,11 +22,15 @@ func LaunchAppWindow(url string) (*exec.Cmd, error) {
 		candidates = []string{
 			filepath.Join(os.Getenv("ProgramFiles(x86)"), "Microsoft", "Edge", "Application", "msedge.exe"),
 			filepath.Join(os.Getenv("ProgramFiles"), "Microsoft", "Edge", "Application", "msedge.exe"),
+			filepath.Join(os.Getenv("LOCALAPPDATA"), "Microsoft", "Edge", "Application", "msedge.exe"),
 			filepath.Join(os.Getenv("ProgramFiles"), "Google", "Chrome", "Application", "chrome.exe"),
 			filepath.Join(os.Getenv("ProgramFiles(x86)"), "Google", "Chrome", "Application", "chrome.exe"),
-			filepath.Join(os.Getenv("LOCALAPPDATA"), "Microsoft", "Edge", "Application", "msedge.exe"),
+			filepath.Join(os.Getenv("LOCALAPPDATA"), "Google", "Chrome", "Application", "chrome.exe"),
+			filepath.Join(os.Getenv("ProgramFiles"), "BraveSoftware", "Brave-Browser", "Application", "brave.exe"),
+			filepath.Join(os.Getenv("LOCALAPPDATA"), "BraveSoftware", "Brave-Browser", "Application", "brave.exe"),
 			"msedge.exe",
 			"chrome.exe",
+			"brave.exe",
 		}
 	case "darwin":
 		candidates = []string{
@@ -63,10 +67,13 @@ func LaunchAppWindow(url string) (*exec.Cmd, error) {
 			cmd := exec.Command(path,
 				fmt.Sprintf("--app=%s", url),
 				fmt.Sprintf("--user-data-dir=%s", tempProfile),
-				"--window-size=1200,800",
+				"--window-size=1240,840",
 				"--no-first-run",
 				"--no-default-browser-check",
+				"--disable-sync",
+				"--disable-extensions",
 			)
+			cmd.SysProcAttr = getSysProcAttr()
 			if err := cmd.Start(); err == nil {
 				return cmd, nil
 			}
@@ -84,6 +91,7 @@ func LaunchAppWindow(url string) (*exec.Cmd, error) {
 		fallbackCmd = exec.Command("xdg-open", url)
 	}
 
+	fallbackCmd.SysProcAttr = getSysProcAttr()
 	if err := fallbackCmd.Start(); err != nil {
 		return nil, fmt.Errorf("nie udało się otworzyć okna przeglądarki dla GUI: %w", err)
 	}
